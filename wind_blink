@@ -1,0 +1,109 @@
+
+var wind;
+
+// Circle position
+var position;
+
+var y = 100;
+
+var onoff = require('onoff'); //#A
+
+var Gpio = onoff.Gpio,
+  led = new Gpio(4, 'out'), //#B
+  interval;
+function setup() {
+  createCanvas(1500, 600);
+  stroke(0);     // Set line drawing color to white
+  frameRate(30);
+  // Request the data from apixu.com
+  var url = 'http://api.apixu.com/v1/current.json?key=6314221e0fcb445aa51171424170910&q=10003';
+
+
+  loadJSON(url, gotWeather);
+
+
+  // Circle starts in the middle
+
+  // wind starts as (0,0)
+  wind = createVector();
+
+
+  position = createVector(width/2, height/2);
+
+  // wind starts as (0,0)
+  socket = io.connect('http://localhost:3000');
+
+}
+
+function draw() {
+  background(255,111,93);
+  y = y - 1;
+    if (y < 0) {
+      y = height;
+    }
+    // line(0, y, width, y);
+  // Move in the wind's direction
+
+  // This section draws an arrow pointing in the direction of wind
+  push();
+  translate(32, height - 32);
+  // Rotate by the wind's angle
+  rotate(wind.heading() + PI/2);
+  noStroke();
+  fill(255);
+  ellipse(0, 0, 48, 48);
+
+  stroke(45, 123, 182);
+  strokeWeight(3);
+  line(0, -16, 0, 16);
+
+  noStroke();
+  fill(45, 123, 182);
+  triangle(0, -18, -6, -10, 6, -10);
+  pop();
+
+  position.add(wind);
+
+
+
+  noStroke();
+  fill(243,255,0);
+  ellipse(position.x, position.y-50, 16, 16);
+
+  if (position.x > width)  position.x = 0;
+  if (position.x < 0)      position.x = width;
+  if (position.y > height) position.y = 0;
+  if (position.y < 0)      position.y = height;
+
+
+
+function gotWeather(weather) {
+
+  // Get the angle (convert to radians)
+  var angle = radians(Number(weather.current.wind_degree));
+  // Get the wind speed
+  var windmag = Number(weather.current.wind_mph);
+
+  // Display as HTML elements
+  var temperatureDiv = createDiv(floor(weather.current.temp_f) + '&deg;');
+  var windDiv = createDiv("WIND " + windmag + " <small>MPH</small>");
+
+  // Make a vector
+  wind = p5.Vector.fromAngle(angle);
+}
+interval = setInterval(function () { //#C
+  if wind < 10;
+  // var value = (led.readSync() + 1) % 2; //#D
+  // led.write(value, function() { //#E
+    led.write(on, function() {
+    console.log("wind speed > 10: " +wind);
+  });
+}, 500);
+
+process.on('SIGINT', function () { //#F
+  clearInterval(interval);
+  led.writeSync(0); //#G
+  led.unexport();
+  console.log('Bye, bye!');
+  process.exit();
+});
