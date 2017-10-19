@@ -92,11 +92,9 @@ function gotWeather(weather) {
   wind = p5.Vector.fromAngle(angle);
 }
 interval = setInterval(function () { //#C
-  if wind < 10;
   // var value = (led.readSync() + 1) % 2; //#D
-  // led.write(value, function() { //#E
-    led.write(on, function() {
-    console.log("wind speed > 10: " +wind);
+  led.write(1, function() { //#E
+    console.log("Changed LED state to: " + 1);
   });
 }, 500);
 
